@@ -62,4 +62,9 @@ while true; do
     esac
 done
 
-scp -p 33001 -i $PRIVATE_KEY -p $1 $USR@$HOST:$REMOTE_DIR
+echo "Attempting Aspera transfer"
+/data/xnat/home/relay_tools/ascp -v -l 10G -P 33001 -i /xnat/home/.ssh/id_rsa -L /tmp/ $1 xnat@${HOST}:${REMOTE_DIR}
+if [ $? -ne 0 ] ; then
+	echo "Attempting scp transfer"
+	scp -P 33001 -i $PRIVATE_KEY -p $1 $USR@$HOST:$REMOTE_DIR
+fi
