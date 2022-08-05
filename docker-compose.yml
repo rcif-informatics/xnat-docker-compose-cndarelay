@@ -23,13 +23,13 @@ services:
       - 8104:8104
     volumes:
       - ./xnat/plugins:${XNAT_HOME}/plugins
+      - ./xnat/aspera_keys:${XNAT_HOME}/aspera_keys
+      - ./xnat/relay_tools:${XNAT_HOME}/relay_tools
       - /data/xnat/home/logs:${XNAT_HOME}/logs
       - /data/xnat/archive:${XNAT_ROOT}/archive
       - /data/xnat/build:${XNAT_ROOT}/build
       - /data/xnat/cache:${XNAT_ROOT}/cache
       - /var/run/docker.sock:/var/run/docker.sock
-      - /xnat/aspera_keys:${XNAT_HOME}/aspera_keys
-      - /xnat/relay_tools:${XNAT_HOME}/relay_tools
     depends_on:
       - xnat-db
     environment:
