@@ -1,0 +1,65 @@
+#!/bin/bash
+#
+# Example CliTransferClient script, using scp for transfers
+#
+# NOTE: It is recommended to lock down the PRIVATE_KEY on the remote client such that only supported supported commands
+#       are permitted through the key:
+# EXAMPLE (In ~/.ssh/authorized keys, allow scp or rcp to /data/xnat/inbox/xar directory):
+#  command="if [[ \"$SSH_ORIGINAL_COMMAND\" =~ ^(rsync|scp)[\ ].*/data/xnat/inbox/xar[/\ ]*$ ]]; then $SSH_ORIGINAL_COMMAND ; else echo Access Denied; fi" ssh-rsa [RSA_PUBLIC_KEY}
+#
+#
+
+print_help() {
+	printf "xsync_transfer_file [options] *FILE*\n\n"
+	printf "   Options\n\n"
+	printf "      -H, --host             <host>\n"
+	printf "      -u, --user             <user>\n"
+	printf "      -r, --rdir             <remote_directory>\n"
+	printf "      -k, --key              <private_key>\n"
+	printf "\n\n"
+}
+
+if [ $# -eq 0 ] || [ $# -gt 9 ] ; then
+	printf "\nUSAGE:  "
+	print_help
+	exit
+fi
+
+while true; do 
+    case "$1" in
+      --help | -h | -\?)
+	printf "\n"
+	print_help
+	exit 0
+	;;
+      --host | -H)
+        HOST=$2
+	shift
+	shift
+        ;;
+      --user | -u)
+        USR=$2
+	shift
+	shift
+        ;;
+      --rdir | -r)
+        REMOTE_DIR=$2
+	shift
+	shift
+        ;;
+      --key | -k)
+        PRIVATE_KEY=$2
+	shift
+	shift
+        ;;
+      -*)
+	echo "Invalid parameter ($1)"
+	exit 1
+        ;;
+      *)
+	break 
+        ;;
+    esac
+done
+
+scp -p 33001 -i $PRIVATE_KEY -p $1 $USR@$HOST:$REMOTE_DIR

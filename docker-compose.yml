@@ -28,6 +28,8 @@ services:
       - /data/xnat/build:${XNAT_ROOT}/build
       - /data/xnat/cache:${XNAT_ROOT}/cache
       - /var/run/docker.sock:/var/run/docker.sock
+      - /xnat/aspera_keys:${XNAT_HOME}/aspera_keys
+      - /xnat/relay_tools:${XNAT_HOME}/relay_tools
     depends_on:
       - xnat-db
     environment:
