@@ -134,7 +134,7 @@ XNAT_DATASOURCE_PASSWORD | Specifies the password for the XNAT database account.
 XNAT_WEBAPP_FOLDER | Indicates the name of the folder for the XNAT application. This affects the context path for accessing XNAT. The value `ROOT` indicates that XNAT is the root application and can be accessed at http://localhost (i.e. no path). Otherwise, you must add this value to the _end_ of the URL so, e.g. if you specify `xnat` for this variable, you'll access XNAT at http://localhost/xnat. | ROOT
 XNAT_ROOT | Indicates the location of the root XNAT folder on the XNAT container. | /data/xnat
 XNAT_HOME | Indicates the location of the XNAT user's home folder on the XNAT container. | /data/xnat/home
-XNAT_EMAIL | Specifies the primary administrator email address. | harmitage@miskatonic.edu
+XNAT_EMAIL | Specifies the primary administrator email address. | hodgem@wustl.edu
 XNAT_ACTIVEMQ_URL | Indicates the URL for an external ActiveMQ service to use for messaging. If not specified, XNAT uses its own internal queue. |
 XNAT_ACTIVEMQ_USERNAME | Indicates the username to use to authenticate with the configured ActiveMQ server. Has no effect if **XNAT_ACTIVEMQ_URL** isn't specified. |
 XNAT_ACTIVEMQ_PASSWORD | Indicates the password to use to authenticate with the configured ActiveMQ server. Has no effect if **XNAT_ACTIVEMQ_URL** isn't specified. |
