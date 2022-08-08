@@ -1,6 +1,8 @@
 #!/bin/bash
  
-if [[ "$*" =~ ^.*\-\-restart ]] ; then
+if [[ "$*" =~ ^.*\-\-rebuild ]] ; then
+        docker-compose -f /data/docker/xnat-docker-compose-ccfrelay/docker-compose.yml build
+elif [[ "$*" =~ ^.*\-\-restart ]] ; then
         docker-compose -f /data/docker/xnat-docker-compose-ccfrelay/docker-compose.yml down
 fi
 
