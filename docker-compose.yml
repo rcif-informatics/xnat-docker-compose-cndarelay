@@ -25,7 +25,6 @@ services:
       - ./xnat/plugins:${XNAT_HOME}/plugins
       - ./xnat/aspera_keys:${XNAT_HOME}/aspera_keys
       - ./xnat/relay_tools:${XNAT_HOME}/relay_tools
-      - ./xnat/relay_tools/jq:/usr/local/bin/jq
       - ./xnat/relay_tools/ascp:/usr/local/bin/ascp
       - ./xnat/relay_tools/aspera-license:/usr/local/bin/aspera-license
       - /data/xnat/home/logs:${XNAT_HOME}/logs
