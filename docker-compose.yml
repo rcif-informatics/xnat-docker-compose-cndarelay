@@ -22,6 +22,7 @@ services:
     ports:
       - 8104:8104
     volumes:
+      - ~/.ssh:/root/.ssh
       - ./xnat/plugins:${XNAT_HOME}/plugins
       - ./xnat/aspera_keys:${XNAT_HOME}/aspera_keys
       - ./xnat/relay_tools:${XNAT_HOME}/relay_tools
