@@ -82,7 +82,27 @@ for EXP_INFO in `curl -s -k --cookie JSESSIONID=$JSESSIONID https://$HOST/data/e
 	fi
 done
 
+## CLEANUP EMPTY SUBJECTS
+SUBJ_WITH_EXP=`curl -s -k --cookie JSESSIONID=$JSESSIONID https://$HOST/data/experiments?format=csv\&columns=ID,project,label,subject_ID,subject_label,URI | awk -F, '{ print $5,$3 }' OFS=, | grep -v "project,label"`
+SUBJ_WITHOUT_EXP=""
+OLDIFS="$IFS"
+IFS=$'\n'
+for SUBJ_INFO in `curl -s -k --cookie JSESSIONID=$JSESSIONID https://$HOST/data/subjects?format=csv\&columns=ID,project,label,insert_date | cut -d',' -f2,3,4 | egrep -v "project,label"`; do
+	SUBJ_PROJ=`echo "$SUBJ_INFO" | cut -d',' -f1`
+	SUBJ_LBL=`echo "$SUBJ_INFO" | cut -d',' -f2`
+	SUBJ_DS=`echo "$SUBJ_INFO" | cut -d',' -f3`
+	SUBJ_DATE="`date --date=\"$SUBJ_DS\" +\"%s\"`"
+	if [ $(( ($CURRENT_TIME - $SUBJ_DATE) / (60*60*24) )) -gt 0 ] ; then
+		SUBJ_WITHOUT_EXP=`printf "$SUBJ_WITHOUT_EXP\n";echo "$SUBJ_PROJ,$SUBJ_LBL"`
+	fi
+done
+IFS="$OLDIFS"
+for SUBJ_INFO in `comm -1 -3 <( echo "$SUBJ_WITH_EXP" | sort ) <( echo "$SUBJ_WITHOUT_EXP" | grep -v "^$" | sort )`; do
+	SUBJ_PROJ=`echo "$SUBJ_INFO" | cut -d',' -f1`
+	SUBJ_LBL=`echo "$SUBJ_INFO" | cut -d',' -f2`
+	echo "Removing empty subject:  $SUBJ_LBL" >> $CLEANUP_LOG
+	curl -s -k --cookie JSESSIONID=$JSESSIONID https://$HOST/data/projects/$EXP_PROJ/subjects/$SUBJ_LBL -X DELETE
+done
+
 rm $TEMP_FILE
-
-
 
