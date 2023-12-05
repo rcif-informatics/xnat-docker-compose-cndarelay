@@ -30,6 +30,9 @@ services:
       - ./xnat/relay_tools/aspera-license:/usr/local/bin/aspera-license
       - /data/xnat/home/logs:${XNAT_HOME}/logs
       - /data/xnat/archive:${XNAT_ROOT}/archive
+      - /data/xnat/prearchive:${XNAT_ROOT}/prearchive
+      - /data/xnat/pipeline:${XNAT_ROOT}/pipeline
+      - /data/xnat/inbox:${XNAT_ROOT}/inbox
       - /data/xnat/build:${XNAT_ROOT}/build
       - /data/xnat/cache:${XNAT_ROOT}/cache
       - /var/run/docker.sock:/var/run/docker.sock
