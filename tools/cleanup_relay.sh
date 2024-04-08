@@ -16,11 +16,32 @@ fi
 
 echo "Running cleanup_relay job - starting `date`" >> $CLEANUP_LOG
 
-JSESSIONID=`curl -s -k -n https://$HOST/data/JSESSIONID`
+RENEW_JSESSION_ID () {
+        HTTP_CODE=`curl -s -k -w "%{http_code}\n" --cookie JSESSIONID=$JSESSIONID https://${HOST}/data/projects -o /dev/null`
+        if [ "$HTTP_CODE" != "200" ] ; then
+        	JSESSIONID=`curl -s -k -v -n https://${HOST}/data/JSESSIONID 2> /dev/null`
+        	echo "JSESSIONID successfully set.  Run the following line in your session to set an environment variable for future runs."
+        	echo "export JSESSIONID=$JSESSIONID"
+        else
+                return
+        fi
+        echo "curl -s -w \"%{http_code}\n\" --cookie JSESSIONID=$JSESSIONID https://${HOST}/data/projects -o /dev/null"
+        HTTP_CODE=`curl -s -k -w "%{http_code}\n" --cookie JSESSIONID=$JSESSIONID https://${HOST}/data/projects -o /dev/null`
+        if [ "$HTTP_CODE" != "200" ] ; then
+                echo "JSESSIONID is invalid or expired - exiting (HTTP_CODE=$HTTP_CODE)"
+                exit
+        fi
+}
 
-#echo "JSESSIONID=$JSESSIONID"
+RENEW_JSESSION_ID
+echo "JSESSIONID=$JSESSIONID"
+
+#echo "NOTICE!!!! DISABLING CLEANUP FOR NOW"
+#echo "NOTICE!!!! DISABLING CLEANUP FOR NOW `date`" >> $CLEANUP_LOG
+#exit
 
 XSYNC_HISTORY=`curl -s -k --cookie JSESSIONID=$JSESSIONID https://$HOST/xapi/xsync/history`
+#echo "XSYNC_HISTORY=$XSYNC_HISTORY"
 
 TEMP_FILE=`mktemp --suffix=cleanup`
 
@@ -54,11 +75,14 @@ for SYNC_RECORD in `echo "$XSYNC_HISTORY" | jq -r '.[] | @base64'`; do
 		IFS="$OLDIFS"
 		echo "\"$localProject\",\"$remoteProject\",\"$remoteHost\",\"$localLabel\",\"$timestamp\",\"$syncStatus\"" >> $TEMP_FILE
 	done
-	
 done       
 
 #echo "Print: $TEMP_FILE"
 #cat $TEMP_FILE
+
+echo "Sync History Review Complete:  Begin removing sessions."
+
+RENEW_JSESSION_ID
 
 for EXP_INFO in `curl -s -k --cookie JSESSIONID=$JSESSIONID https://$HOST/data/experiments?format=csv\&columns=ID,project,label,subject_ID,subject_label,URI | cut -d',' -f3,5,6,8 | tail -n +2 | sort`; do
 	SUBJ_LBL=`echo "$EXP_INFO" | cut -d',' -f1`
@@ -66,21 +90,26 @@ for EXP_INFO in `curl -s -k --cookie JSESSIONID=$JSESSIONID https://$HOST/data/e
 	EXP_LBL=`echo "$EXP_INFO" | cut -d',' -f3`
 	SUBJ_URI=`echo "$EXP_INFO" | cut -d',' -f4`
 	SYNC_INFO=`cat $TEMP_FILE | grep "^\"${EXP_PROJ}\"" | grep ",\"${EXP_LBL}\"," | sort | tail -n 1` 
-	#echo "$SYNC_INFO"
+	if [[ "$SYNC_INFO" == "" ]]; then
+		continue
+	fi
 	SYNC_REMOTEPROJ=`echo "${SYNC_INFO}" | cut -d',' -f2 | sed -e "s/\"//g"`
 	SYNC_REMOTEHOST=`echo "{$SYNC_INFO}" | cut -d',' -f3 | sed -e "s/\"//g"`
 	SYNC_TIME=`echo "${SYNC_INFO}" | cut -d',' -f5 | sed -e "s/\"//g"`
 	SYNC_STATUS=`echo "${SYNC_INFO}" | cut -d',' -f6 | sed -e "s/\"//g"`
-	#echo "$EXP_PROJ - $EXP_LBL - $SYNC_TIME - $SYNC_STATUS"
+	echo "$EXP_PROJ - $EXP_LBL - $SYNC_TIME - $SYNC_STATUS"
 	DAYS="$(( ( $CURRENT_TIME - ($SYNC_TIME/1000) ) / (60*60*24) ))"
 	if [ "$SYNC_STATUS" == "SYNCED_AND_VERIFIED" ] && [ $DAYS -gt $CLEANUP_DAYS_OLD ] ; then
 		if [ -d /data/xnat/archive/$EXP_PROJ/arc001/$EXP_LBL  ] ; then
+			RENEW_JSESSION_ID
 			echo "Removing SYNCED_AND_VERIFIED session:  $EXP_PROJ - $SUBJ_LBL - $EXP_LBL - DAYS_OLD=$DAYS - `date`" >> $CLEANUP_LOG
 			curl -s -k --cookie JSESSIONID=$JSESSIONID https://$HOST/data/projects/$EXP_PROJ/subjects/$SUBJ_LBL/experiments/$EXP_LBL?removeFiles=false -X DELETE
 			rm -rf $ARCHIVE_LOC/$EXP_PROJ/arc001/$EXP_LBL
 		fi
 	fi
 done
+
+RENEW_JSESSION_ID
 
 ## CLEANUP EMPTY SUBJECTS
 SUBJ_WITH_EXP=`curl -s -k --cookie JSESSIONID=$JSESSIONID https://$HOST/data/experiments?format=csv\&columns=ID,project,label,subject_ID,subject_label,URI | awk -F, '{ print $5,$3 }' OFS=, | grep -v "project,label"`
@@ -101,7 +130,7 @@ for SUBJ_INFO in `comm -1 -3 <( echo "$SUBJ_WITH_EXP" | sort ) <( echo "$SUBJ_WI
 	SUBJ_PROJ=`echo "$SUBJ_INFO" | cut -d',' -f1`
 	SUBJ_LBL=`echo "$SUBJ_INFO" | cut -d',' -f2`
 	echo "Removing empty subject:  $SUBJ_LBL" >> $CLEANUP_LOG
-	curl -s -k --cookie JSESSIONID=$JSESSIONID https://$HOST/data/projects/$EXP_PROJ/subjects/$SUBJ_LBL -X DELETE
+	curl -s -k --cookie JSESSIONID=$JSESSIONID https://$HOST/data/projects/$SUBJ_PROJ/subjects/$SUBJ_LBL -X DELETE
 done
 
 rm $TEMP_FILE
