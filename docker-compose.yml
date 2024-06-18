@@ -44,6 +44,7 @@ services:
 
   xnat-db:
     image: postgres:${PG_VERSION}
+    restart: on-failure
     expose:
       - "5432"
     volumes:
@@ -60,6 +61,7 @@ services:
 
   xnat-nginx:
     image: nginx:${NGINX_VERSION}
+    restart: on-failure
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf
       - ./nginx/cndarelay-selfsigned.crt:/etc/nginx/certs/cndarelay-selfsigned.crt
