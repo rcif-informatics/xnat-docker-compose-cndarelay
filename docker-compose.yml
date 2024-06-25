@@ -21,7 +21,7 @@ services:
         XNAT_EMAIL: ${XNAT_EMAIL}
     ports:
       - 8104:8104
-	# ucsd-relay1 has a DICOM receiver here.
+      # ucsd-relay1 has a DICOM receiver here.
       - 9104:9104
     volumes:
       - ~/.ssh:/root/.ssh
