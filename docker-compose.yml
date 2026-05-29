@@ -21,8 +21,6 @@ services:
         XNAT_EMAIL: ${XNAT_EMAIL}
     ports:
       - 8104:8104
-      # ucsd-relay1 has a DICOM receiver here.
-      - 9104:9104
     volumes:
       - ~/.ssh:/root/.ssh
       - ./xnat/plugins:${XNAT_HOME}/plugins
@@ -50,7 +48,24 @@ services:
     expose:
       - "5432"
     volumes:
-      - /data/postgres/data:/var/lib/postgresql/data
+      - /data/postgres/data-pg17:/var/lib/postgresql/data
+      #- ./postgres-data:/var/lib/postgresql/data
+      # 
+      - ./postgres:/docker-entrypoint-initdb.d
+    environment:
+      - POSTGRES_PASSWORD=${XNAT_DATASOURCE_ADMIN_PASSWORD}
+      - POSTGRES_DB=${XNAT_DATASOURCE_NAME}
+      # variables for the sql script
+      - XNAT_DATASOURCE_USERNAME=${XNAT_DATASOURCE_USERNAME}
+      - XNAT_DATASOURCE_PASSWORD=${XNAT_DATASOURCE_PASSWORD}
+
+  xnat-db-old:
+    image: postgres:${PG_VERSION_OLD}
+    restart: on-failure
+    expose:
+      - "5532"
+    volumes:
+      - /data/postgres/data-pg12:/var/lib/postgresql/data
       #- ./postgres-data:/var/lib/postgresql/data
       # 
       - ./postgres:/docker-entrypoint-initdb.d
