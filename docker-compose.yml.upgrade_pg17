@@ -44,7 +44,7 @@ services:
 
   xnat-db-new:
     image: postgres:${PG_VERSION}
-    restart: on-failure
+    restart: no
       #command: ["postgres", "-p", "5532"]
     command: ["sleep", "infinity"]
     ports:
