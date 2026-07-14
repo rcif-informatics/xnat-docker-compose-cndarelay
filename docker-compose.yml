@@ -20,6 +20,7 @@ services:
         XNAT_HOME: ${XNAT_HOME}
         XNAT_EMAIL: ${XNAT_EMAIL}
     ports:
+      #- 8000:8000
       - 8104:8104
       # ucsd-relay1 has a DICOM receiver here.
       - 9104:9104
@@ -41,6 +42,7 @@ services:
     depends_on:
       - xnat-db
     environment:
+      #- CATALINA_OPTS=-Xms${XNAT_MIN_HEAP} -Xmx${XNAT_MAX_HEAP} -Dxnat.home=${XNAT_HOME} -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=8000 
       - CATALINA_OPTS=-Xms${XNAT_MIN_HEAP} -Xmx${XNAT_MAX_HEAP} -Dxnat.home=${XNAT_HOME}
       - XNAT_HOME=${XNAT_HOME}
 
